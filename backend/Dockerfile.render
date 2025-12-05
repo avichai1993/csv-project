@@ -1,4 +1,5 @@
-# Backend Dockerfile
+# Backend Dockerfile for Render deployment
+# Uses project root as context to access shared/ directory
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -11,18 +12,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install Poetry
 RUN pip install --no-cache-dir poetry
 
-# Copy dependency files
-COPY pyproject.toml poetry.lock* ./
+# Copy dependency files from backend/
+COPY backend/pyproject.toml backend/poetry.lock* ./
 
 # Install dependencies (no dev dependencies in production)
 RUN poetry config virtualenvs.create false \
     && poetry install --no-interaction --no-ansi --only main --no-root
 
 # Copy application code
-COPY src/ ./src/
-COPY data/ ./data/
+COPY backend/src/ ./src/
+COPY backend/data/ ./data/
 
-# Note: For Render, use dockerContext: . in render.yaml to access shared/
+# Copy shared OpenAPI specs
+COPY shared/ ./shared/
 
 # Create data directory for CSV
 RUN mkdir -p /app/data
@@ -32,15 +34,9 @@ ENV PYTHONPATH=/app
 ENV FLASK_ENV=production
 ENV LOG_LEVEL=INFO
 ENV CSV_PATH=/app/data/targets.csv
-# Render uses PORT env var, default to 5000 for local
-ENV PORT=5000
 
-# Expose port (Render ignores this, uses PORT env var)
+# Render injects PORT env var
 EXPOSE 5000
 
-# Health check (for local Docker, Render has its own)
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:${PORT}/api/health || exit 1
-
-# Run with gunicorn for production (more robust than Flask dev server)
+# Run the application
 CMD ["python", "-m", "src.main"]

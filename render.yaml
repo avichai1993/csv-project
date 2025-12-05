@@ -1,0 +1,41 @@
+# Render Blueprint - Infrastructure as Code
+# Deploy with: Connect GitHub repo to Render Dashboard
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  # Backend API Service
+  - type: web
+    name: target-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile.render
+    dockerContext: .  # Project root to access shared/
+    region: frankfurt  # eu-central
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: CORS_ORIGINS
+        value: "*"  # Update with your frontend URL after deployment
+
+  # Frontend Static Site
+  - type: web
+    name: target-ui
+    runtime: static
+    buildCommand: cd frontend && npm install && npm run generate:api && npm run build
+    staticPublishPath: frontend/dist
+    region: frankfurt
+    plan: free
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: public, max-age=31536000
+    routes:
+      - type: rewrite
+        source: /api/*
+        destination: https://target-api.onrender.com/api/*
+      - type: rewrite
+        source: /*
+        destination: /index.html
