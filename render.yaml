@@ -22,11 +22,10 @@ services:
 
   # Frontend Web Service (Docker-based to support Java for OpenAPI generation)
   - type: web
-    name: target-ui
+    name: target-frontend
     runtime: docker
     dockerfilePath: ./frontend/Dockerfile.render
     dockerContext: .  # Project root to access shared/
-    region: frankfurt
     plan: free
     envVars:
       - key: VITE_API_URL
