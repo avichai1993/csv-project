@@ -46,3 +46,6 @@ data/*.csv
 # Logs
 *.log
 logs/
+
+# Generated code (regenerate from OpenAPI)
+src/generated/
