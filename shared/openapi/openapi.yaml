@@ -1,0 +1,65 @@
+# Target Management System - OpenAPI Specification
+# Main file that references models and paths
+
+openapi: 3.0.3
+
+info:
+  title: Target Management API
+  description: |
+    RESTful API for managing Target objects with full CRUD operations.
+    
+    ## Features
+    - Full CRUD operations for targets
+    - API versioning (/api/v1/)
+    - Health check endpoint
+    - Request tracing via X-Request-ID header
+    
+    ## Authentication
+    Currently no authentication required (internal use only).
+  version: 1.0.0
+  contact:
+    name: API Support
+
+servers:
+  - url: http://localhost:5000
+    description: Local development
+  - url: http://3.70.226.142
+    description: Production server
+
+tags:
+  - name: Health
+    description: Health check operations
+  - name: Targets
+    description: Target management operations
+
+# Reference paths from paths.yaml
+paths:
+  /api/health:
+    $ref: './paths.yaml#/paths/~1api~1health'
+  /api/v1/targets:
+    $ref: './paths.yaml#/paths/~1api~1v1~1targets'
+  /api/v1/targets/{id}:
+    $ref: './paths.yaml#/paths/~1api~1v1~1targets~1{id}'
+
+# Reference components from models.yaml
+components:
+  schemas:
+    TargetDTO:
+      $ref: './models.yaml#/components/schemas/TargetDTO'
+    TargetCreateDTO:
+      $ref: './models.yaml#/components/schemas/TargetCreateDTO'
+    TargetUpdateDTO:
+      $ref: './models.yaml#/components/schemas/TargetUpdateDTO'
+    ErrorResponseDTO:
+      $ref: './models.yaml#/components/schemas/ErrorResponseDTO'
+    HealthResponseDTO:
+      $ref: './models.yaml#/components/schemas/HealthResponseDTO'
+
+  # Common response headers
+  headers:
+    X-Request-ID:
+      description: Unique request identifier for tracing
+      schema:
+        type: string
+        format: uuid
+      example: "7f3d8a2b-1c4e-4f5a-9b6c-8d7e0f1a2b3c"

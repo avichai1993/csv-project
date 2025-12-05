@@ -1,0 +1,50 @@
+# Target Management System - Docker Compose Configuration
+# Production configuration
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: target-api
+    expose:
+      - "5000"
+    volumes:
+      - target-data:/app/data
+    environment:
+      - FLASK_ENV=production
+      - LOG_LEVEL=INFO
+      - CSV_PATH=/app/data/targets.csv
+      - CORS_ORIGINS=*
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - target-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        - VITE_API_URL=
+        - VITE_USE_MOCKS=false
+    container_name: target-ui
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - target-network
+
+volumes:
+  target-data:
+    driver: local
+
+networks:
+  target-network:
+    driver: bridge

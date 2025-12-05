@@ -1,0 +1,33 @@
+# Target Management System - Docker Compose Development Overrides
+# Use with: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend/src:/app/src:ro
+      - ./backend/data:/app/data
+      - ./shared:/app/shared:ro
+    environment:
+      - FLASK_ENV=development
+      - LOG_LEVEL=DEBUG
+      - CSV_PATH=/app/data/targets.csv
+      - CORS_ORIGINS=*
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+      args:
+        - VITE_API_URL=http://localhost:5000/api/v1
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend/src:/app/src:ro
+      - ./frontend/public:/app/public:ro
+    environment:
+      - VITE_ENV=development

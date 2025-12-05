@@ -1,0 +1,219 @@
+# Target Management System - DTO Models
+# All shared Data Transfer Objects for API communication
+
+components:
+  schemas:
+    # Full Target object returned in responses
+    TargetDTO:
+      type: object
+      required:
+        - id
+        - latitude
+        - longitude
+        - altitude
+        - frequency
+        - speed
+        - bearing
+        - ip_address
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier (auto-generated)
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        latitude:
+          type: number
+          format: float
+          minimum: -90
+          maximum: 90
+          description: Latitude coordinate
+          example: 32.0853
+        longitude:
+          type: number
+          format: float
+          minimum: -180
+          maximum: 180
+          description: Longitude coordinate
+          example: 34.7818
+        altitude:
+          type: number
+          format: float
+          description: Altitude in meters
+          example: 150.5
+        frequency:
+          type: number
+          format: float
+          minimum: 0
+          exclusiveMinimum: true
+          description: Frequency (any positive number)
+          example: 2.4
+        speed:
+          type: number
+          format: float
+          minimum: 0
+          description: Speed in m/s
+          example: 25.0
+        bearing:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 360
+          description: Bearing in degrees
+          example: 180.0
+        ip_address:
+          type: string
+          pattern: '^(\d{1,3}\.){3}\d{1,3}$'
+          description: IPv4 address
+          example: "192.168.1.1"
+
+    # Request body for creating a new target
+    TargetCreateDTO:
+      type: object
+      required:
+        - latitude
+        - longitude
+        - altitude
+        - frequency
+        - speed
+        - bearing
+        - ip_address
+      properties:
+        latitude:
+          type: number
+          format: float
+          minimum: -90
+          maximum: 90
+          description: Latitude coordinate
+          example: 32.0853
+        longitude:
+          type: number
+          format: float
+          minimum: -180
+          maximum: 180
+          description: Longitude coordinate
+          example: 34.7818
+        altitude:
+          type: number
+          format: float
+          description: Altitude in meters
+          example: 150.5
+        frequency:
+          type: number
+          format: float
+          minimum: 0
+          exclusiveMinimum: true
+          description: Frequency (any positive number)
+          example: 2.4
+        speed:
+          type: number
+          format: float
+          minimum: 0
+          description: Speed in m/s
+          example: 25.0
+        bearing:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 360
+          description: Bearing in degrees
+          example: 180.0
+        ip_address:
+          type: string
+          pattern: '^(\d{1,3}\.){3}\d{1,3}$'
+          description: IPv4 address
+          example: "192.168.1.1"
+
+    # Request body for updating a target (all fields optional)
+    TargetUpdateDTO:
+      type: object
+      properties:
+        latitude:
+          type: number
+          format: float
+          minimum: -90
+          maximum: 90
+          description: Latitude coordinate
+          example: 32.0853
+        longitude:
+          type: number
+          format: float
+          minimum: -180
+          maximum: 180
+          description: Longitude coordinate
+          example: 34.7818
+        altitude:
+          type: number
+          format: float
+          description: Altitude in meters
+          example: 150.5
+        frequency:
+          type: number
+          format: float
+          minimum: 0
+          exclusiveMinimum: true
+          description: Frequency (any positive number)
+          example: 2.4
+        speed:
+          type: number
+          format: float
+          minimum: 0
+          description: Speed in m/s
+          example: 25.0
+        bearing:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 360
+          description: Bearing in degrees
+          example: 180.0
+        ip_address:
+          type: string
+          pattern: '^(\d{1,3}\.){3}\d{1,3}$'
+          description: IPv4 address
+          example: "192.168.1.1"
+
+    # Standard error response
+    ErrorResponseDTO:
+      type: object
+      required:
+        - error
+        - status
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "Target not found"
+        details:
+          type: object
+          additionalProperties:
+            type: string
+          description: Field-specific error details
+          example:
+            latitude: "Must be between -90 and 90"
+        status:
+          type: integer
+          description: HTTP status code
+          example: 400
+
+    # Health check response
+    HealthResponseDTO:
+      type: object
+      required:
+        - status
+        - version
+        - timestamp
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+          description: Health status
+          example: "healthy"
+        version:
+          type: string
+          description: API version
+          example: "1.0.0"
+        timestamp:
+          type: string
+          format: date-time
+          description: Current server time
+          example: "2024-01-15T10:30:00Z"

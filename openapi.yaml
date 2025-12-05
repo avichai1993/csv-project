@@ -1,0 +1,385 @@
+openapi: 3.0.3
+info:
+  title: Target Management API
+  description: RESTful API for managing Target objects with CSV storage
+  version: 1.0.0
+  contact:
+    name: API Support
+
+servers:
+  - url: http://localhost:5000/api
+    description: Local development server
+  - url: http://3.70.226.142:5000/api
+    description: Production server
+
+paths:
+  /targets:
+    get:
+      summary: Get all targets
+      operationId: getTargets
+      tags:
+        - Targets
+      responses:
+        '200':
+          description: List of all targets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TargetListResponse'
+
+    post:
+      summary: Create a new target
+      operationId: createTarget
+      tags:
+        - Targets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TargetCreate'
+      responses:
+        '201':
+          description: Target created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /targets/{targetId}:
+    parameters:
+      - name: targetId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: Unique identifier of the target
+
+    get:
+      summary: Get a single target by ID
+      operationId: getTargetById
+      tags:
+        - Targets
+      responses:
+        '200':
+          description: Target details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Target'
+        '404':
+          description: Target not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      summary: Update an existing target
+      operationId: updateTarget
+      tags:
+        - Targets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TargetUpdate'
+      responses:
+        '200':
+          description: Target updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '404':
+          description: Target not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Delete a target
+      operationId: deleteTarget
+      tags:
+        - Targets
+      responses:
+        '200':
+          description: Target deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '404':
+          description: Target not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /health:
+    get:
+      summary: Health check endpoint
+      operationId: healthCheck
+      tags:
+        - System
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+components:
+  schemas:
+    Coordinates:
+      type: object
+      required:
+        - latitude
+        - longitude
+        - altitude
+      properties:
+        latitude:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+          description: Latitude coordinate
+          example: 32.0853
+        longitude:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+          description: Longitude coordinate
+          example: 34.7818
+        altitude:
+          type: number
+          format: double
+          description: Altitude in meters
+          example: 150.5
+
+    Frequency:
+      type: number
+      format: double
+      enum: [433, 915, 2.4, 5.2, 5.8]
+      description: Frequency value (433/915 MHz or 2.4/5.2/5.8 GHz)
+      example: 2.4
+
+    Target:
+      type: object
+      required:
+        - id
+        - latitude
+        - longitude
+        - altitude
+        - frequency
+        - speed
+        - bearing
+        - ip_address
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        latitude:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+          example: 32.0853
+        longitude:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+          example: 34.7818
+        altitude:
+          type: number
+          format: double
+          example: 150.5
+        frequency:
+          $ref: '#/components/schemas/Frequency'
+        speed:
+          type: number
+          format: double
+          minimum: 0
+          description: Speed in m/s
+          example: 25.0
+        bearing:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 360
+          description: Bearing in degrees
+          example: 180.0
+        ip_address:
+          type: string
+          pattern: '^(\d{1,3}\.){3}\d{1,3}$'
+          description: IPv4 address
+          example: "192.168.1.1"
+
+    TargetCreate:
+      type: object
+      required:
+        - latitude
+        - longitude
+        - altitude
+        - frequency
+        - speed
+        - bearing
+        - ip_address
+      properties:
+        latitude:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+        altitude:
+          type: number
+          format: double
+        frequency:
+          $ref: '#/components/schemas/Frequency'
+        speed:
+          type: number
+          format: double
+          minimum: 0
+        bearing:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 360
+        ip_address:
+          type: string
+          pattern: '^(\d{1,3}\.){3}\d{1,3}$'
+
+    TargetUpdate:
+      type: object
+      properties:
+        latitude:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+        altitude:
+          type: number
+          format: double
+        frequency:
+          $ref: '#/components/schemas/Frequency'
+        speed:
+          type: number
+          format: double
+          minimum: 0
+        bearing:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 360
+        ip_address:
+          type: string
+          pattern: '^(\d{1,3}\.){3}\d{1,3}$'
+
+    TargetListResponse:
+      type: object
+      required:
+        - targets
+        - count
+      properties:
+        targets:
+          type: array
+          items:
+            $ref: '#/components/schemas/Target'
+        count:
+          type: integer
+          minimum: 0
+          example: 1
+
+    CreateResponse:
+      type: object
+      required:
+        - id
+        - message
+      properties:
+        id:
+          type: string
+          format: uuid
+        message:
+          type: string
+          example: "Target created successfully"
+
+    MessageResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: "Operation successful"
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - status
+      properties:
+        error:
+          type: string
+          example: "Target not found"
+        status:
+          type: integer
+          example: 404
+
+    ValidationError:
+      type: object
+      required:
+        - error
+        - details
+        - status
+      properties:
+        error:
+          type: string
+          example: "Validation failed"
+        details:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            bearing: "Must be between 0 and 360"
+        status:
+          type: integer
+          example: 400
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          example: "healthy"

@@ -1,0 +1,56 @@
+[tool.poetry]
+name = "target-management-backend"
+version = "1.0.0"
+description = "Target Management System - Flask REST API Backend"
+authors = ["Developer"]
+readme = "README.md"
+packages = [{include = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+flask = "^3.0.0"
+flask-cors = "^4.0.0"
+connexion = {extras = ["flask", "swagger-ui"], version = "^3.0.0"}
+pydantic = "^2.5.0"
+python-dotenv = "^1.0.0"
+pyyaml = "^6.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+pytest-cov = "^4.1.0"
+faker = "^22.0.0"
+ruff = "^0.1.0"
+black = "^23.0.0"
+mypy = "^1.7.0"
+
+[tool.poetry.scripts]
+start = "src.main:run"
+clean-generated = "scripts.clean:clean_generated"
+generate-api = "scripts.generate:generate_api"
+build-full = "scripts.build:build_full"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4"]
+ignore = ["E501"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"

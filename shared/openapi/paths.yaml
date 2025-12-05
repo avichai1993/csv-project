@@ -1,0 +1,145 @@
+# Target Management System - API Paths
+# All endpoint definitions for auto-generating routes and clients
+
+paths:
+  # Health check endpoint (not versioned)
+  /api/health:
+    get:
+      operationId: getHealth
+      summary: Health check
+      description: Returns the health status of the API for Docker/Kubernetes probes
+      tags:
+        - Health
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                $ref: './models.yaml#/components/schemas/HealthResponseDTO'
+
+  # Target endpoints (versioned)
+  /api/v1/targets:
+    get:
+      operationId: getAllTargets
+      summary: Get all targets
+      description: Returns a list of all targets
+      tags:
+        - Targets
+      responses:
+        '200':
+          description: List of targets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: './models.yaml#/components/schemas/TargetDTO'
+
+    post:
+      operationId: createTarget
+      summary: Create a new target
+      description: Creates a new target and returns the created object
+      tags:
+        - Targets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './models.yaml#/components/schemas/TargetCreateDTO'
+      responses:
+        '201':
+          description: Target created successfully
+          content:
+            application/json:
+              schema:
+                $ref: './models.yaml#/components/schemas/TargetDTO'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: './models.yaml#/components/schemas/ErrorResponseDTO'
+
+  /api/v1/targets/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Target UUID
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      operationId: getTargetById
+      summary: Get a target by ID
+      description: Returns a single target by its ID
+      tags:
+        - Targets
+      responses:
+        '200':
+          description: Target found
+          content:
+            application/json:
+              schema:
+                $ref: './models.yaml#/components/schemas/TargetDTO'
+        '404':
+          description: Target not found
+          content:
+            application/json:
+              schema:
+                $ref: './models.yaml#/components/schemas/ErrorResponseDTO'
+
+    put:
+      operationId: updateTarget
+      summary: Update a target
+      description: Updates an existing target and returns the updated object
+      tags:
+        - Targets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './models.yaml#/components/schemas/TargetUpdateDTO'
+      responses:
+        '200':
+          description: Target updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: './models.yaml#/components/schemas/TargetDTO'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: './models.yaml#/components/schemas/ErrorResponseDTO'
+        '404':
+          description: Target not found
+          content:
+            application/json:
+              schema:
+                $ref: './models.yaml#/components/schemas/ErrorResponseDTO'
+
+    delete:
+      operationId: deleteTarget
+      summary: Delete a target
+      description: Deletes a target and returns the deleted object
+      tags:
+        - Targets
+      responses:
+        '200':
+          description: Target deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: './models.yaml#/components/schemas/TargetDTO'
+        '404':
+          description: Target not found
+          content:
+            application/json:
+              schema:
+                $ref: './models.yaml#/components/schemas/ErrorResponseDTO'

@@ -1,0 +1,48 @@
+# Git
+.git
+.gitignore
+
+# Node
+node_modules
+npm-debug.log
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.coverage
+htmlcov
+venv
+.venv
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist
+build
+
+# Test files (not needed in production)
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+tests/
+
+# Documentation
+*.md
+!README.md
+
+# Keys and secrets
+*.pem
+*.key
+.env.local
+.env.*.local
