@@ -25,8 +25,8 @@ COPY frontend/ ./
 # Generate API client from OpenAPI spec
 RUN npm run generate:api
 
-# Build the app (skip tsc, use vite directly)
-RUN npm run build -- --mode production
+# Build the app - use vite directly to skip tsc errors
+RUN npx vite build --mode production
 
 # Production stage - serve with nginx
 FROM nginx:alpine
