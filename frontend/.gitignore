@@ -49,4 +49,4 @@ cypress/screenshots/
 Thumbs.db
 
 # Generated code (regenerate from OpenAPI)
-# src/generated/
+src/generated/
