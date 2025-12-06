@@ -139,7 +139,6 @@ def create_app():
     logger.info("Application initialized successfully")
     return connexion_app
 
-
 def run() -> None:
     """Run the application."""
     connexion_app = create_app()
