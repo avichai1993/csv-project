@@ -25,6 +25,10 @@ COPY frontend/ ./
 # Generate API client from OpenAPI spec
 RUN npm run generate:api
 
+# Build arg for API URL (Vite needs this at build time)
+ARG VITE_API_URL=https://target-api.onrender.com
+ENV VITE_API_URL=$VITE_API_URL
+
 # Build the app - use vite directly to skip tsc errors
 RUN npx vite build --mode production
 
