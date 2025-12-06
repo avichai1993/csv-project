@@ -48,5 +48,4 @@ data/*.csv
 logs/
 
 # Generated code (regenerate from OpenAPI)
-# Committed to git for simpler CI/CD builds
-# src/generated/
+src/generated/
