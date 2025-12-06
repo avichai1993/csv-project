@@ -8,13 +8,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Button, Alert } from "react-bootstrap";
-import { Plus } from "lucide-react";
+import { Plus, RefreshCw } from "lucide-react";
 import Layout from "../components/Layout";
 import TargetList from "../components/TargetList";
 import TargetFormModal from "../components/TargetFormModal";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
 import { TableSkeleton } from "../components/LoadingSkeleton";
-import { targetsApi } from "../services/api";
+import { targetsApi, getErrorMessage } from "../services/api";
 import type { TargetDTO, TargetCreateDTO, TargetUpdateDTO } from "../generated/api";
 
 export default function TargetListPage() {
@@ -43,11 +43,12 @@ export default function TargetListPage() {
       } else {
         console.error('API returned non-array:', data);
         setTargets([]);
-        setError('API returned unexpected data format');
+        setError('API returned unexpected data format. The server may be unavailable.');
       }
     } catch (err) {
       console.error('API error:', err);
-      setError(err instanceof Error ? err.message : "Failed to fetch targets");
+      setTargets([]); // Keep UI functional even on error
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -92,7 +93,8 @@ export default function TargetListPage() {
       setEditingTarget(null);
       await fetchTargets();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save target");
+      console.error('Save error:', err);
+      setError(getErrorMessage(err));
     } finally {
       setSubmitting(false);
     }
@@ -110,7 +112,8 @@ export default function TargetListPage() {
       setDeletingTarget(null);
       await fetchTargets();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete target");
+      console.error('Delete error:', err);
+      setError(getErrorMessage(err));
     } finally {
       setSubmitting(false);
     }
@@ -128,7 +131,18 @@ export default function TargetListPage() {
 
       {error && (
         <Alert variant="danger" dismissible onClose={() => setError(null)}>
-          {error}
+          <div className="d-flex justify-content-between align-items-center">
+            <span>{error}</span>
+            <Button 
+              variant="outline-danger" 
+              size="sm" 
+              onClick={fetchTargets}
+              disabled={loading}
+            >
+              <RefreshCw size={16} className={`me-1 ${loading ? 'spin' : ''}`} />
+              Retry
+            </Button>
+          </div>
         </Alert>
       )}
 
