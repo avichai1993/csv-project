@@ -36,8 +36,17 @@ export default function TargetListPage() {
       setLoading(true);
       setError(null);
       const response = await targetsApi.getAllTargets();
-      setTargets(response.data);
+      // Ensure we have an array
+      const data = response.data;
+      if (Array.isArray(data)) {
+        setTargets(data);
+      } else {
+        console.error('API returned non-array:', data);
+        setTargets([]);
+        setError('API returned unexpected data format');
+      }
     } catch (err) {
+      console.error('API error:', err);
       setError(err instanceof Error ? err.message : "Failed to fetch targets");
     } finally {
       setLoading(false);
