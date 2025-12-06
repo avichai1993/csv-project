@@ -18,6 +18,9 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Lock file (generated in CI/builds)
+package-lock.json
+
 # Environment
 *.local
 .env

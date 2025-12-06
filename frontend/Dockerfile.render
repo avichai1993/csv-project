@@ -10,11 +10,11 @@ WORKDIR /app
 # Install Java for OpenAPI generator and bash for scripts
 RUN apk add --no-cache openjdk17-jre bash
 
-# Copy package files
-COPY frontend/package*.json ./
+# Copy package.json (no lock file - uses latest compatible versions)
+COPY frontend/package.json ./
 
 # Install dependencies
-RUN npm ci
+RUN npm install
 
 # Copy shared OpenAPI specs
 COPY shared/ ../shared/

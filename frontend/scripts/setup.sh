@@ -69,7 +69,7 @@ fi
 echo ""
 echo "Installing npm dependencies..."
 cd "$FRONTEND_DIR"
-npm ci
+npm install
 success "Dependencies installed"
 
 # Generate API code (if Java is available)
