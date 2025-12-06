@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:mocks": "VITE_USE_MOCKS=true vite",
+    "dev:mocks": "cross-env VITE_USE_MOCKS=true vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
@@ -18,7 +18,12 @@
     "build:full": "npm run clean:generated && npm run generate:api && npm run build",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
-    "e2e": "start-server-and-test dev http://localhost:5173 cypress:run"
+    "e2e": "start-server-and-test dev http://localhost:5173 cypress:run",
+    "e2e:mocks": "start-server-and-test dev:mocks http://localhost:5173 cypress:run",
+    "setup": "bash scripts/setup.sh",
+    "ci": "bash scripts/ci.sh",
+    "ci:skip-e2e": "bash scripts/ci.sh --skip-e2e",
+    "ci:quick": "npm run lint && npm run typecheck && npm run test:run"
   },
   "dependencies": {
     "axios": "^1.6.0",
@@ -41,6 +46,7 @@
     "@types/react-dom": "^18.2.0",
     "@vitejs/plugin-react": "^4.2.0",
     "@vitest/coverage-v8": "^1.0.0",
+    "cross-env": "^10.1.0",
     "cypress": "^13.6.0",
     "eslint": "^9.15.0",
     "eslint-plugin-react-hooks": "^5.0.0",
@@ -56,6 +62,8 @@
     "vitest": "^1.0.0"
   },
   "msw": {
-    "workerDirectory": ["public"]
+    "workerDirectory": [
+      "public"
+    ]
   }
 }
