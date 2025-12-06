@@ -1,0 +1,435 @@
+openapi: 3.0.3
+info:
+  contact:
+    name: API Support
+  description: |
+    RESTful API for managing Target objects with full CRUD operations.
+
+    ## Features
+    - Full CRUD operations for targets
+    - API versioning (/api/v1/)
+    - Health check endpoint
+    - Request tracing via X-Request-ID header
+
+    ## Authentication
+    Currently no authentication required (internal use only).
+  title: Target Management API
+  version: 1.0.0
+servers:
+- description: Local development
+  url: http://localhost:5000
+- description: Production server
+  url: http://3.70.226.142
+tags:
+- description: Health check operations
+  name: Health
+- description: Target management operations
+  name: Targets
+paths:
+  /api/health:
+    get:
+      description: Returns the health status of the API for Docker/Kubernetes probes
+      operationId: get_health
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponseDTO"
+          description: API is healthy
+      summary: Health check
+      tags:
+      - Health
+      x-openapi-router-controller: src.api.controllers.health_controller
+  /api/v1/targets:
+    get:
+      description: Returns a list of all targets
+      operationId: get_all_targets
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/TargetDTO"
+                type: array
+          description: List of targets
+      summary: Get all targets
+      tags:
+      - Targets
+      x-openapi-router-controller: src.api.controllers.targets_controller
+    post:
+      description: Creates a new target and returns the created object
+      operationId: create_target
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TargetCreateDTO"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TargetDTO"
+          description: Target created successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+          description: Validation error
+      summary: Create a new target
+      tags:
+      - Targets
+      x-openapi-router-controller: src.api.controllers.targets_controller
+  /api/v1/targets/{id}:
+    delete:
+      description: Deletes a target and returns the deleted object
+      operationId: delete_target
+      parameters:
+      - description: Target UUID
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TargetDTO"
+          description: Target deleted successfully
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+          description: Target not found
+      summary: Delete a target
+      tags:
+      - Targets
+      x-openapi-router-controller: src.api.controllers.targets_controller
+    get:
+      description: Returns a single target by its ID
+      operationId: get_target_by_id
+      parameters:
+      - description: Target UUID
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TargetDTO"
+          description: Target found
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+          description: Target not found
+      summary: Get a target by ID
+      tags:
+      - Targets
+      x-openapi-router-controller: src.api.controllers.targets_controller
+    put:
+      description: Updates an existing target and returns the updated object
+      operationId: update_target
+      parameters:
+      - description: Target UUID
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TargetUpdateDTO"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TargetDTO"
+          description: Target updated successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+          description: Validation error
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+          description: Target not found
+      summary: Update a target
+      tags:
+      - Targets
+      x-openapi-router-controller: src.api.controllers.targets_controller
+components:
+  headers:
+    X-Request-ID:
+      description: Unique request identifier for tracing
+      example: 7f3d8a2b-1c4e-4f5a-9b6c-8d7e0f1a2b3c
+      explode: false
+      schema:
+        format: uuid
+        type: string
+      style: simple
+  schemas:
+    TargetDTO:
+      example:
+        altitude: 150.5
+        bearing: 180.0
+        latitude: 32.0853
+        id: 550e8400-e29b-41d4-a716-446655440000
+        ip_address: 192.168.1.1
+        speed: 25.0
+        longitude: 34.7818
+        frequency: 2.4
+      properties:
+        id:
+          description: Unique identifier (auto-generated)
+          example: 550e8400-e29b-41d4-a716-446655440000
+          format: uuid
+          type: string
+        latitude:
+          description: Latitude coordinate
+          example: 32.0853
+          format: float
+          maximum: 90
+          minimum: -90
+          type: number
+        longitude:
+          description: Longitude coordinate
+          example: 34.7818
+          format: float
+          maximum: 180
+          minimum: -180
+          type: number
+        altitude:
+          description: Altitude in meters
+          example: 150.5
+          format: float
+          type: number
+        frequency:
+          description: Frequency (any positive number)
+          example: 2.4
+          exclusiveMinimum: true
+          format: float
+          minimum: 0
+          type: number
+        speed:
+          description: Speed in m/s
+          example: 25.0
+          format: float
+          minimum: 0
+          type: number
+        bearing:
+          description: Bearing in degrees
+          example: 180.0
+          format: float
+          maximum: 360
+          minimum: 0
+          type: number
+        ip_address:
+          description: IPv4 address
+          example: 192.168.1.1
+          pattern: "^(\\d{1,3}\\.){3}\\d{1,3}$"
+          type: string
+      required:
+      - altitude
+      - bearing
+      - frequency
+      - id
+      - ip_address
+      - latitude
+      - longitude
+      - speed
+      type: object
+    TargetCreateDTO:
+      example:
+        altitude: 150.5
+        bearing: 180.0
+        latitude: 32.0853
+        ip_address: 192.168.1.1
+        speed: 25.0
+        longitude: 34.7818
+        frequency: 2.4
+      properties:
+        latitude:
+          description: Latitude coordinate
+          example: 32.0853
+          format: float
+          maximum: 90
+          minimum: -90
+          type: number
+        longitude:
+          description: Longitude coordinate
+          example: 34.7818
+          format: float
+          maximum: 180
+          minimum: -180
+          type: number
+        altitude:
+          description: Altitude in meters
+          example: 150.5
+          format: float
+          type: number
+        frequency:
+          description: Frequency (any positive number)
+          example: 2.4
+          exclusiveMinimum: true
+          format: float
+          minimum: 0
+          type: number
+        speed:
+          description: Speed in m/s
+          example: 25.0
+          format: float
+          minimum: 0
+          type: number
+        bearing:
+          description: Bearing in degrees
+          example: 180.0
+          format: float
+          maximum: 360
+          minimum: 0
+          type: number
+        ip_address:
+          description: IPv4 address
+          example: 192.168.1.1
+          pattern: "^(\\d{1,3}\\.){3}\\d{1,3}$"
+          type: string
+      required:
+      - altitude
+      - bearing
+      - frequency
+      - ip_address
+      - latitude
+      - longitude
+      - speed
+      type: object
+    TargetUpdateDTO:
+      example:
+        altitude: 150.5
+        bearing: 180.0
+        latitude: 32.0853
+        ip_address: 192.168.1.1
+        speed: 25.0
+        longitude: 34.7818
+        frequency: 2.4
+      properties:
+        latitude:
+          description: Latitude coordinate
+          example: 32.0853
+          format: float
+          maximum: 90
+          minimum: -90
+          type: number
+        longitude:
+          description: Longitude coordinate
+          example: 34.7818
+          format: float
+          maximum: 180
+          minimum: -180
+          type: number
+        altitude:
+          description: Altitude in meters
+          example: 150.5
+          format: float
+          type: number
+        frequency:
+          description: Frequency (any positive number)
+          example: 2.4
+          exclusiveMinimum: true
+          format: float
+          minimum: 0
+          type: number
+        speed:
+          description: Speed in m/s
+          example: 25.0
+          format: float
+          minimum: 0
+          type: number
+        bearing:
+          description: Bearing in degrees
+          example: 180.0
+          format: float
+          maximum: 360
+          minimum: 0
+          type: number
+        ip_address:
+          description: IPv4 address
+          example: 192.168.1.1
+          pattern: "^(\\d{1,3}\\.){3}\\d{1,3}$"
+          type: string
+      type: object
+    ErrorResponseDTO:
+      example:
+        details:
+          latitude: Must be between -90 and 90
+        error: Target not found
+        status: 400
+      properties:
+        error:
+          description: Error message
+          example: Target not found
+          type: string
+        details:
+          additionalProperties:
+            type: string
+          description: Field-specific error details
+          example:
+            latitude: Must be between -90 and 90
+          type: object
+        status:
+          description: HTTP status code
+          example: 400
+          type: integer
+      required:
+      - error
+      - status
+      type: object
+    HealthResponseDTO:
+      example:
+        version: 1.0.0
+        status: healthy
+        timestamp: 2024-01-15T10:30:00Z
+      properties:
+        status:
+          description: Health status
+          enum:
+          - healthy
+          - unhealthy
+          example: healthy
+          type: string
+        version:
+          description: API version
+          example: 1.0.0
+          type: string
+        timestamp:
+          description: Current server time
+          example: 2024-01-15T10:30:00Z
+          format: date-time
+          type: string
+      required:
+      - status
+      - timestamp
+      - version
+      type: object

@@ -1,19 +1,21 @@
 """Target Management System - Application Entry Point.
 
 This module creates and configures the Flask application with:
+- Connexion for OpenAPI-based routing
 - CORS support
 - Request ID middleware for tracing
 - Logging configuration
-- Route registration from generated routes
-- Swagger UI at /api/docs
+- Swagger UI at /api/docs (provided by connexion)
 """
 
 import logging
 import os
 import uuid
 from datetime import datetime, timezone
+from pathlib import Path
 
-from flask import Flask, g, request, Response
+import connexion
+from flask import g, request, Response
 from flask_cors import CORS
 from dotenv import load_dotenv
 
@@ -36,33 +38,88 @@ def configure_logging() -> None:
     logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 
-def create_app() -> Flask:
-    """Create and configure the Flask application.
+def create_app():
+    """Create and configure the Connexion/Flask application.
     
     Returns:
-        Configured Flask application instance
+        Configured Connexion application instance
     """
     configure_logging()
     logger = logging.getLogger(__name__)
     
-    app = Flask(__name__)
+    # Determine OpenAPI spec location
+    # In Docker/Render: generated spec is at src/generated/openapi/
+    # Locally: use shared/openapi/bundled/openapi/ (bundled spec with resolved refs)
+    generated_spec = Path(__file__).parent / "generated" / "openapi"
+    bundled_spec = Path(__file__).parent.parent.parent / "shared" / "openapi" / "bundled" / "openapi"
+    
+    if generated_spec.exists():
+        spec_dir = generated_spec
+    else:
+        spec_dir = bundled_spec
+    
+    logger.info(f"Using OpenAPI spec from: {spec_dir}")
+    
+    # Create Connexion app
+    connexion_app = connexion.App(
+        __name__,
+        specification_dir=str(spec_dir),
+    )
+    
+    # Add API with OpenAPI spec
+    # x-openapi-router-controller tells connexion where to find the controller functions
+    connexion_app.add_api(
+        "openapi.yaml",
+        arguments={"title": "Target Management API"},
+        pythonic_params=True,
+        strict_validation=True,
+        validate_responses=False,  # Don't validate responses for flexibility
+    )
+    
+    # Get the underlying Flask app
+    flask_app = connexion_app.app
+    
+    # Add manual Swagger UI route since connexion 3.x swagger_ui_options has issues
+    @flask_app.route("/api/docs")
+    def swagger_ui():
+        """Serve Swagger UI."""
+        return """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Target Management API - Swagger UI</title>
+            <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+        </head>
+        <body>
+            <div id="swagger-ui"></div>
+            <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+            <script>
+                SwaggerUIBundle({
+                    url: '/openapi.json',
+                    dom_id: '#swagger-ui',
+                    presets: [SwaggerUIBundle.presets.apis],
+                    layout: "BaseLayout"
+                });
+            </script>
+        </body>
+        </html>
+        """
     
     # Configure CORS
     cors_origins = os.getenv("CORS_ORIGINS", "*")
-    CORS(app, origins=cors_origins.split(",") if cors_origins != "*" else "*")
+    CORS(flask_app, origins=cors_origins.split(",") if cors_origins != "*" else "*")
     
     # Request ID middleware
-    @app.before_request
+    @flask_app.before_request
     def before_request():
         """Add request ID to each request for tracing."""
-        # Use client-provided ID or generate new one
         request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
         g.request_id = request_id
         g.request_start = datetime.now(timezone.utc)
         
         logger.debug(f"[{request_id}] {request.method} {request.path}")
     
-    @app.after_request
+    @flask_app.after_request
     def after_request(response: Response) -> Response:
         """Add request ID header to response."""
         request_id = getattr(g, "request_id", "unknown")
@@ -79,75 +136,23 @@ def create_app() -> Flask:
         
         return response
     
-    # Register routes from generated code
-    from src.generated.routes import register_health_routes, register_target_routes
-    
-    register_health_routes(app)
-    register_target_routes(app)
-    
-    # Swagger UI route
-    @app.route("/api/docs")
-    def swagger_ui():
-        """Redirect to Swagger UI."""
-        return """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Target Management API - Swagger UI</title>
-            <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
-        </head>
-        <body>
-            <div id="swagger-ui"></div>
-            <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
-            <script>
-                SwaggerUIBundle({
-                    url: '/api/openapi.yaml',
-                    dom_id: '#swagger-ui',
-                    presets: [SwaggerUIBundle.presets.apis],
-                    layout: "BaseLayout"
-                });
-            </script>
-        </body>
-        </html>
-        """
-    
-    # Serve OpenAPI spec
-    @app.route("/api/openapi.yaml")
-    def openapi_spec():
-        """Serve the OpenAPI specification."""
-        import yaml
-        from pathlib import Path
-        
-        # Read and merge OpenAPI files
-        spec_dir = Path(__file__).parent.parent.parent / "shared" / "openapi"
-        
-        with open(spec_dir / "openapi.yaml") as f:
-            spec = yaml.safe_load(f)
-        
-        # For simplicity, return a bundled spec
-        # In production, you might want to use a proper bundler
-        return Response(
-            yaml.dump(spec, default_flow_style=False),
-            mimetype="text/yaml"
-        )
-    
     logger.info("Application initialized successfully")
-    return app
+    return connexion_app
 
 
 def run() -> None:
     """Run the application."""
-    app = create_app()
+    connexion_app = create_app()
     
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", "5000"))
-    debug = os.getenv("FLASK_ENV", "development") == "development"
     
-    app.run(host=host, port=port, debug=debug)
+    connexion_app.run(host=host, port=port)
 
 
 # Create app instance for WSGI servers
-app = create_app()
+connexion_app = create_app()
+app = connexion_app.app  # Flask app for WSGI
 
 
 if __name__ == "__main__":

@@ -4,10 +4,15 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies including Java for OpenAPI generator
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+    default-jre-headless \
+    npm \
     && rm -rf /var/lib/apt/lists/*
+
+# Install OpenAPI Generator CLI
+RUN npm install -g @openapitools/openapi-generator-cli
 
 # Install Poetry
 RUN pip install --no-cache-dir poetry
@@ -19,12 +24,27 @@ COPY backend/pyproject.toml backend/poetry.lock* ./
 RUN poetry config virtualenvs.create false \
     && poetry install --no-interaction --no-ansi --only main --no-root
 
+# Copy shared OpenAPI specs first (needed for generation)
+COPY shared/ ./shared/
+
+# Generate API code from OpenAPI spec (models and base controllers)
+RUN openapi-generator-cli generate \
+    -i shared/openapi/openapi.yaml \
+    -g python-flask \
+    -o /tmp/generated \
+    --additional-properties=packageName=generated \
+    && mkdir -p src/generated \
+    && cp -r /tmp/generated/generated/models src/generated/ \
+    && cp /tmp/generated/generated/__init__.py src/generated/ \
+    && cp /tmp/generated/generated/util.py src/generated/ \
+    && cp /tmp/generated/generated/typing_utils.py src/generated/ \
+    && cp /tmp/generated/generated/encoder.py src/generated/ \
+    && mkdir -p src/generated/openapi \
+    && cp /tmp/generated/generated/openapi/openapi.yaml src/generated/openapi/
+
 # Copy application code
 COPY backend/src/ ./src/
 COPY backend/data/ ./data/
-
-# Copy shared OpenAPI specs
-COPY shared/ ./shared/
 
 # Create data directory for CSV
 RUN mkdir -p /app/data

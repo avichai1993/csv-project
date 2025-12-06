@@ -1,11 +1,13 @@
 # Target Management System - API Paths
 # All endpoint definitions for auto-generating routes and clients
+# x-openapi-router-controller tells Connexion where to find handler functions
 
 paths:
   # Health check endpoint (not versioned)
   /api/health:
     get:
-      operationId: getHealth
+      operationId: get_health
+      x-openapi-router-controller: src.api.controllers.health_controller
       summary: Health check
       description: Returns the health status of the API for Docker/Kubernetes probes
       tags:
@@ -21,7 +23,8 @@ paths:
   # Target endpoints (versioned)
   /api/v1/targets:
     get:
-      operationId: getAllTargets
+      operationId: get_all_targets
+      x-openapi-router-controller: src.api.controllers.targets_controller
       summary: Get all targets
       description: Returns a list of all targets
       tags:
@@ -37,7 +40,8 @@ paths:
                   $ref: './models.yaml#/components/schemas/TargetDTO'
 
     post:
-      operationId: createTarget
+      operationId: create_target
+      x-openapi-router-controller: src.api.controllers.targets_controller
       summary: Create a new target
       description: Creates a new target and returns the created object
       tags:
@@ -73,7 +77,8 @@ paths:
           format: uuid
 
     get:
-      operationId: getTargetById
+      operationId: get_target_by_id
+      x-openapi-router-controller: src.api.controllers.targets_controller
       summary: Get a target by ID
       description: Returns a single target by its ID
       tags:
@@ -93,7 +98,8 @@ paths:
                 $ref: './models.yaml#/components/schemas/ErrorResponseDTO'
 
     put:
-      operationId: updateTarget
+      operationId: update_target
+      x-openapi-router-controller: src.api.controllers.targets_controller
       summary: Update a target
       description: Updates an existing target and returns the updated object
       tags:
@@ -125,7 +131,8 @@ paths:
                 $ref: './models.yaml#/components/schemas/ErrorResponseDTO'
 
     delete:
-      operationId: deleteTarget
+      operationId: delete_target
+      x-openapi-router-controller: src.api.controllers.targets_controller
       summary: Delete a target
       description: Deletes a target and returns the deleted object
       tags:
